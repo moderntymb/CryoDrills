@@ -7,6 +7,7 @@ import mindustry.type.Liquid;
 import mindustry.world.Block;
 import mindustry.world.consumers.ConsumeLiquidBase;
 import mindustry.world.meta.Stat;
+import mindustry.world.meta.Stats;
 
 public class CryoLiquidBoost extends ConsumeLiquidBase {
 
@@ -68,8 +69,8 @@ public class CryoLiquidBoost extends ConsumeLiquidBase {
     }
 
     @Override
-    public void display(mindustry.world.meta.Stats stats) {
+    public void display(Stats stats) {
         stats.add(Stat.booster, Liquids.water, amount * 60f, true);
         stats.add(Stat.booster, Liquids.cryofluid, amount * 120f, true);
     }
-    }
+}
