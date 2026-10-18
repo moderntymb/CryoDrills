@@ -9,22 +9,23 @@ import mindustry.world.blocks.production.Drill;
 public class CryoDrillLogic {
 
     public static void prepare() {
-        Log.info("CryoDrills: checking vanilla drills.");
+        Log.info("CryoDrills: preparing drills.");
 
-        check(Blocks.mechanicalDrill);
-        check(Blocks.pneumaticDrill);
-        check(Blocks.laserDrill);
-        check(Blocks.blastDrill);
+        replaceBoost(Blocks.pneumaticDrill);
     }
 
-    private static void check(Block block) {
+    private static void replaceBoost(Block block) {
         if (!(block instanceof Drill)) {
-            Log.info("CryoDrills: @ is not a standard Drill.", block.name);
+            Log.err("CryoDrills: @ is not a Drill.", block.name);
             return;
         }
 
         Drill drill = (Drill) block;
-        Log.info("CryoDrills: found drill @, water boost @.",
-            drill.name, drill.liquidBoostIntensity);
+
+        Log.info(
+            "CryoDrills: found @, original boost intensity @.",
+            drill.name,
+            drill.liquidBoostIntensity
+        );
     }
 }
