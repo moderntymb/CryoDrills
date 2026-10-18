@@ -1,7 +1,7 @@
 package example;
 
-import arc.util.*;
-import mindustry.mod.*;
+import arc.util.Log;
+import mindustry.mod.Mod;
 
 public class ExampleJavaMod extends Mod {
 
@@ -11,6 +11,7 @@ public class ExampleJavaMod extends Mod {
 
     @Override
     public void loadContent() {
-        Log.info("CryoDrills: preparing drill modifications.");
+        CryoDrillLogic.prepare();
+        Log.info("CryoDrills: initialization complete.");
     }
 }
