@@ -1,9 +1,9 @@
+
 package example;
 
 import arc.util.Log;
-import mindustry.mod.Mod;
 import mindustry.content.Blocks;
-import mindustry.content.Liquids;
+import mindustry.world.Block;
 import mindustry.world.blocks.production.Drill;
 
 public class CryoDrillLogic {
@@ -17,10 +17,14 @@ public class CryoDrillLogic {
         check(Blocks.blastDrill);
     }
 
-    private static void check(Drill drill) {
-        if (drill == null) return;
+    private static void check(Block block) {
+        if (!(block instanceof Drill)) {
+            Log.info("CryoDrills: @ is not a standard Drill.", block.name);
+            return;
+        }
 
+        Drill drill = (Drill) block;
         Log.info("CryoDrills: found drill @, water boost @.",
             drill.name, drill.liquidBoostIntensity);
     }
-  }
+}
