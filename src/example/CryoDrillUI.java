@@ -1,58 +1,87 @@
 package example;
 
 import mindustry.content.Liquids;
-import mindustry.type.Liquid;
 import mindustry.world.blocks.production.Drill;
 
 public class CryoDrillUI {
 
     /**
-     * Встановлює UI для бура.
+     * Встановлює UI рідин для CryoDrills.
      *
-     * Смужка автоматично показує:
-     * - Water, якщо в бурі вода;
-     * - Cryofluid, якщо в бурі кріоген;
-     * - порожню liquid bar, якщо рідини немає.
+     * Замість старої окремої полоски Water
+     * використовуємо одну динамічну полоску:
      *
-     * Колір та заповнення бере стандартна система
-     * liquid bars Mindustry.
+     * Water     -> показує воду.
+     * Cryofluid -> показує кріоген.
+     * Empty     -> показує "Liquid".
      */
     public static void install(Drill drill) {
 
         /*
-         * Прибираємо стандартну liquid bar.
+         * Vanilla Mindustry створює liquid bar
+         * для конкретної рідини.
          *
-         * Потім ставимо нашу динамічну,
-         * яка може показувати і воду, і кріоген.
+         * Тому прибираємо стару полоску Water.
+         */
+        drill.removeBar(
+            "liquid-" + Liquids.water.name
+        );
+
+        /*
+         * Про всяк випадок прибираємо стару
+         * нашу полоску, якщо install()
+         * буде викликаний повторно.
          */
         drill.removeBar("liquid");
 
+        /*
+         * Одна динамічна полоска.
+         *
+         * addLiquidBar сама:
+         * - бере localizedName рідини;
+         * - бере її стандартний колір;
+         * - показує кількість рідини;
+         * - враховує liquidCapacity бура.
+         */
         drill.addLiquidBar(build -> {
 
-            float cryo =
-                build.liquids.get(Liquids.cryofluid);
+            float cryofluid =
+                build.liquids.get(
+                    Liquids.cryofluid
+                );
 
             float water =
-                build.liquids.get(Liquids.water);
+                build.liquids.get(
+                    Liquids.water
+                );
 
             /*
-             * Змішування в CryoDrillLogic заборонене,
-             * але перевіряємо обидві рідини окремо.
-             *
-             * Cryofluid перевіряється першим.
+             * Якщо є кріоген —
+             * показуємо Cryofluid.
              */
-            if (cryo > CryoLiquidBoost.EPSILON) {
+            if (
+                cryofluid
+                    > CryoLiquidBoost.EPSILON
+            ) {
                 return Liquids.cryofluid;
             }
 
-            if (water > CryoLiquidBoost.EPSILON) {
+            /*
+             * Якщо є вода —
+             * показуємо Water.
+             */
+            if (
+                water
+                    > CryoLiquidBoost.EPSILON
+            ) {
                 return Liquids.water;
             }
 
             /*
-             * Коли бур порожній, повертаємо null.
-             * Стандартна liquid bar Mindustry
-             * обробляє порожній стан.
+             * Бур порожній.
+             *
+             * addLiquidBar обробить null
+             * як відсутність активної рідини.
              */
             return null;
         });
