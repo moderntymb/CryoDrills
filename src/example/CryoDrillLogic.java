@@ -17,14 +17,11 @@ import java.util.Arrays;
 public class CryoDrillLogic {
 
     /*
-     * У звичайного Drill liquidBoostIntensity фактично
-     * впливає на швидкість двічі:
+     * У Drill прискорення фактично впливає
+     * на кінцеву швидкість приблизно як intensity^2.
      *
-     * final boost ~= intensity^2
-     *
-     * Тому для 2x КІНЦЕВОГО boost:
-     *
-     * cryoIntensity = waterIntensity * sqrt(2)
+     * Тому sqrt(2) дає кріогену приблизно
+     * 2x кінцевої швидкості води.
      */
     private static final float CRYO_INTENSITY_MULTIPLIER =
         Mathf.sqrt(2f);
@@ -33,9 +30,13 @@ public class CryoDrillLogic {
         CryoLiquidBoost.EPSILON;
 
     public static void prepare() {
+
+        // Mechanical Drill не чіпаємо.
         configure(Blocks.pneumaticDrill);
         configure(Blocks.laserDrill);
         configure(Blocks.blastDrill);
+
+        // Impact Drill теж не чіпаємо.
 
         Log.info(
             "CryoDrills: all supported vanilla drills configured."
@@ -43,6 +44,7 @@ public class CryoDrillLogic {
     }
 
     private static void configure(Block block) {
+
         if (!(block instanceof Drill)) {
             return;
         }
@@ -65,11 +67,6 @@ public class CryoDrillLogic {
         CryoLiquidBoost replacement =
             new CryoLiquidBoost(waterAmount);
 
-        /*
-         * ConsumeLiquid normally updates every tick.
-         * Ми замінюємо вже ініціалізований consumer,
-         * тому явно залишаємо його update-consumer'ом.
-         */
         replacement.update = true;
         replacement.apply(drill);
 
@@ -119,6 +116,7 @@ public class CryoDrillLogic {
     private static ConsumeLiquidBase findWaterBooster(
         Drill drill
     ) {
+
         for (Consume consumer : drill.consumers) {
 
             if (!(consumer instanceof ConsumeLiquidBase)) {
@@ -129,11 +127,11 @@ public class CryoDrillLogic {
                 (ConsumeLiquidBase)consumer;
 
             /*
-             * Дуже важлива перевірка booster.
+             * Шукаємо саме WATER BOOSTER.
              *
-             * Через це Impact Drill не буде випадково
-             * змінений, адже його вода є звичайним
-             * consumption, а booster там інша рідина.
+             * Це важливо, бо в деяких блоках вода
+             * може бути звичайним споживанням,
+             * а не прискорювачем.
              */
             if (
                 consumer.booster
@@ -149,6 +147,7 @@ public class CryoDrillLogic {
     private static void installBuildType(
         final Drill target
     ) {
+
         target.buildType = () ->
             target.new DrillBuild() {
 
@@ -163,20 +162,21 @@ public class CryoDrillLogic {
                 }
 
                 /*
-                 * Перша версія:
-                 * вода і кріоген не змішуються.
+                 * У першій версії забороняємо
+                 * змішування води та кріогену.
                  *
-                 * Якщо всередині вже є одна рідина,
-                 * друга не приймається.
+                 * Якщо в бурі вже є вода —
+                 * кріоген не приймається.
                  *
-                 * Коли додамо аварії, саме це місце
-                 * змінимо для Laser/Blast Drill.
+                 * Якщо вже є кріоген —
+                 * вода не приймається.
                  */
                 @Override
                 public boolean acceptLiquid(
                     Building source,
                     Liquid liquid
                 ) {
+
                     if (liquid == Liquids.water) {
 
                         if (hasCryofluid()) {
@@ -201,10 +201,17 @@ public class CryoDrillLogic {
                 @Override
                 public void updateTile() {
 
+                    /*
+                     * ВАЖЛИВО:
+                     * timerDump та dumpTime належать
+                     * зовнішньому Block/Drill.
+                     *
+                     * Тому використовуємо target.
+                     */
                     if (
                         timer(
-                            timerDump,
-                            dumpTime / timeScale
+                            target.timerDump,
+                            target.dumpTime / timeScale
                         )
                     ) {
                         dump(
@@ -219,33 +226,42 @@ public class CryoDrillLogic {
                         return;
                     }
 
-                    timeDrilled += warmup * delta();
+                    timeDrilled +=
+                        warmup * delta();
 
+                    /*
+                     * getDrillTime() — метод Drill,
+                     * тому теж target.
+                     */
                     float delay =
-                        getDrillTime(dominantItem);
+                        target.getDrillTime(
+                            dominantItem
+                        );
 
+                    /*
+                     * itemCapacity належить Block.
+                     */
                     if (
-                        items.total() < itemCapacity
+                        items.total()
+                            < target.itemCapacity
                         && dominantItems > 0
                         && efficiency > 0
                     ) {
 
                         /*
-                         * Water:
-                         * target.liquidBoostIntensity
+                         * WATER:
+                         * стандартний liquidBoostIntensity.
                          *
-                         * Cryofluid:
-                         * intensity * sqrt(2)
-                         *
-                         * Оскільки Drill дає приблизно
-                         * intensity^2 фінального boost,
-                         * це дає рівно 2x результат води.
+                         * CRYO:
+                         * liquidBoostIntensity * sqrt(2).
                          */
                         float intensity =
                             hasCryofluid()
-                                ? target.liquidBoostIntensity
+                                ? target
+                                    .liquidBoostIntensity
                                     * CRYO_INTENSITY_MULTIPLIER
-                                : target.liquidBoostIntensity;
+                                : target
+                                    .liquidBoostIntensity;
 
                         float speed =
                             Mathf.lerp(
@@ -278,10 +294,12 @@ public class CryoDrillLogic {
 
                         if (
                             Mathf.chanceDelta(
-                                target.updateEffectChance
+                                target
+                                    .updateEffectChance
                                     * warmup
                             )
                         ) {
+
                             target.updateEffect.at(
                                 x + Mathf.range(
                                     target.size * 2f
@@ -309,7 +327,8 @@ public class CryoDrillLogic {
                     if (
                         dominantItems > 0
                         && progress >= delay
-                        && items.total() < itemCapacity
+                        && items.total()
+                            < target.itemCapacity
                     ) {
 
                         int amount =
@@ -328,16 +347,72 @@ public class CryoDrillLogic {
                         if (
                             wasVisible
                             && Mathf.chanceDelta(
-                                target.drillEffectChance
+                                target
+                                    .drillEffectChance
                                     * warmup
                             )
                         ) {
+
                             target.drillEffect.at(
                                 x + Mathf.range(
-                                    target.drillEffectRnd
+                                    target
+                                        .drillEffectRnd
                                 ),
                                 y + Mathf.range(
-                                    target.drillEffectRnd
+                                    target
+                                        .drillEffectRnd
+                                ),
+                                dominantItem.color
+                            );
+                        }
+                    }
+                }
+            };
+    }
+
+    /*
+     * Замінює старий vanilla water consumer
+     * на наш CryoLiquidBoost.
+     */
+    private static Consume[] replace(
+        Consume[] source,
+        Consume oldConsumer,
+        Consume replacement,
+        boolean addReplacement
+    ) {
+
+        int count = 0;
+
+        for (Consume consumer : source) {
+
+            if (consumer != oldConsumer) {
+                count++;
+            }
+        }
+
+        Consume[] result =
+            Arrays.copyOf(
+                source,
+                count
+                    + (addReplacement ? 1 : 0)
+            );
+
+        int index = 0;
+
+        for (Consume consumer : source) {
+
+            if (consumer != oldConsumer) {
+                result[index++] = consumer;
+            }
+        }
+
+        if (addReplacement) {
+            result[index] = replacement;
+        }
+
+        return result;
+    }
+                        }                               target.drillEffectRnd
                                 ),
                                 dominantItem.color
                             );
