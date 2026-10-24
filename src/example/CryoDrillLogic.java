@@ -210,7 +210,7 @@ public class CryoDrillLogic {
                      */
                     if (
                         timer(
-    timerDump,
+    0,
     target.dumpTime / timeScale
 )
                     ) {
