@@ -210,9 +210,9 @@ public class CryoDrillLogic {
                      */
                     if (
                         timer(
-                            target.timerDump,
-                            target.dumpTime / timeScale
-                        )
+    timerDump,
+    target.dumpTime / timeScale
+)
                     ) {
                         dump(
                             dominantItem != null
