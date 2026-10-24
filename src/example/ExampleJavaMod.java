@@ -10,8 +10,11 @@ public class ExampleJavaMod extends Mod {
     }
 
     @Override
-    public void loadContent() {
+    public void init() {
         CryoDrillLogic.prepare();
-        Log.info("CryoDrills: initialization complete.");
+
+        Log.info(
+            "CryoDrills: initialization complete."
+        );
     }
 }
