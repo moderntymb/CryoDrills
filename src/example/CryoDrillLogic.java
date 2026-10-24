@@ -101,7 +101,18 @@ public class CryoDrillLogic {
         drill.hasConsumers =
             drill.consumers.length > 0;
 
+        /*
+         * Встановлюємо нашу логіку DrillBuild.
+         */
         installBuildType(drill);
+
+        /*
+         * Встановлюємо окремий UI.
+         *
+         * CryoDrillUI відповідає за bars та інші
+         * майбутні елементи інтерфейсу.
+         */
+        CryoDrillUI.install(drill);
 
         Log.info(
             "CryoDrills: configured @ | water=@/s | cryofluid=@/s",
@@ -129,9 +140,8 @@ public class CryoDrillLogic {
             /*
              * Шукаємо саме WATER BOOSTER.
              *
-             * Це важливо, бо в деяких блоках вода
-             * може бути звичайним споживанням,
-             * а не прискорювачем.
+             * Це важливо, бо вода може бути
+             * звичайним споживанням, а не booster.
              */
             if (
                 consumer.booster
@@ -162,14 +172,8 @@ public class CryoDrillLogic {
                 }
 
                 /*
-                 * У першій версії забороняємо
-                 * змішування води та кріогену.
-                 *
-                 * Якщо в бурі вже є вода —
-                 * кріоген не приймається.
-                 *
-                 * Якщо вже є кріоген —
-                 * вода не приймається.
+                 * Забороняємо змішування
+                 * води та кріогену.
                  */
                 @Override
                 public boolean acceptLiquid(
@@ -202,17 +206,18 @@ public class CryoDrillLogic {
                 public void updateTile() {
 
                     /*
-                     * ВАЖЛИВО:
-                     * timerDump та dumpTime належать
-                     * зовнішньому Block/Drill.
+                     * ПОКИ ЗАЛИШАЄМО timer(0),
+                     * оскільки ця версія механіки
+                     * вже перевірена в грі.
                      *
-                     * Тому використовуємо target.
+                     * Винесемо timer cleanup
+                     * в окрему зміну.
                      */
                     if (
                         timer(
-    0,
-    target.dumpTime / timeScale
-)
+                            0,
+                            target.dumpTime / timeScale
+                        )
                     ) {
                         dump(
                             dominantItem != null
@@ -229,18 +234,11 @@ public class CryoDrillLogic {
                     timeDrilled +=
                         warmup * delta();
 
-                    /*
-                     * getDrillTime() — метод Drill,
-                     * тому теж target.
-                     */
                     float delay =
                         target.getDrillTime(
                             dominantItem
                         );
 
-                    /*
-                     * itemCapacity належить Block.
-                     */
                     if (
                         items.total()
                             < target.itemCapacity
@@ -355,12 +353,10 @@ public class CryoDrillLogic {
 
                             target.drillEffect.at(
                                 x + Mathf.range(
-                                    target
-                                        .drillEffectRnd
+                                    target.drillEffectRnd
                                 ),
                                 y + Mathf.range(
-                                    target
-                                        .drillEffectRnd
+                                    target.drillEffectRnd
                                 ),
                                 dominantItem.color
                             );
