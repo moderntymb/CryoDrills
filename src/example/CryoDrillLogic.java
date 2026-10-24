@@ -412,49 +412,4 @@ public class CryoDrillLogic {
 
         return result;
     }
-                        }                               target.drillEffectRnd
-                                ),
-                                dominantItem.color
-                            );
-                        }
-                    }
-                }
-            };
-    }
-
-    private static Consume[] replace(
-        Consume[] source,
-        Consume oldConsumer,
-        Consume replacement,
-        boolean addReplacement
-    ) {
-        int count = 0;
-
-        for (Consume consumer : source) {
-            if (consumer != oldConsumer) {
-                count++;
-            }
-        }
-
-        Consume[] result =
-            Arrays.copyOf(
-                source,
-                count + (addReplacement ? 1 : 0)
-            );
-
-        int index = 0;
-
-        for (Consume consumer : source) {
-
-            if (consumer != oldConsumer) {
-                result[index++] = consumer;
-            }
-        }
-
-        if (addReplacement) {
-            result[index] = replacement;
-        }
-
-        return result;
-    }
 }
