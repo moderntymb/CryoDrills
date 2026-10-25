@@ -1,6 +1,6 @@
 package example;
 
-import arc.Core;
+import arc.scene.ui.layout.Table;
 
 import mindustry.content.Liquids;
 import mindustry.gen.Building;
@@ -8,26 +8,13 @@ import mindustry.type.Liquid;
 import mindustry.world.Block;
 import mindustry.world.consumers.ConsumeLiquidBase;
 import mindustry.world.meta.Stat;
-import mindustry.world.meta.StatUnit;
 import mindustry.world.meta.Stats;
+import mindustry.world.meta.StatValue;
 
-/**
- * Liquid booster для CryoDrills.
- *
- * Water:
- * - стандартна витрата;
- * - стандартне прискорення бура.
- *
- * Cryofluid:
- * - 2x витрата відносно води;
- * - 2x кінцева швидкість буріння
- *   відносно водяного прискорення.
- */
 public class CryoLiquidBoost
     extends ConsumeLiquidBase {
 
     public static final float CRYO_CONSUMPTION = 2f;
-
     public static final float EPSILON = 0.001f;
 
     public CryoLiquidBoost(float waterAmount) {
@@ -39,11 +26,9 @@ public class CryoLiquidBoost
     public void apply(Block block) {
         super.apply(block);
 
-        /*
-         * Дозволяємо буру приймати
-         * Water та Cryofluid.
-         */
-        block.liquidFilter[Liquids.water.id] = true;
+        block.liquidFilter[
+            Liquids.water.id
+        ] = true;
 
         block.liquidFilter[
             Liquids.cryofluid.id
@@ -52,22 +37,10 @@ public class CryoLiquidBoost
 
     @Override
     public boolean consumes(Liquid liquid) {
-
         return liquid == Liquids.water
             || liquid == Liquids.cryofluid;
     }
 
-    /**
-     * Визначає активну рідину.
-     *
-     * Cryofluid має пріоритет лише як
-     * страховка на випадок, якщо обидві
-     * рідини якимось способом опиняться
-     * всередині одночасно.
-     *
-     * Нормальна логіка CryoDrillLogic
-     * змішування не дозволяє.
-     */
     public Liquid selected(Building build) {
 
         if (
@@ -92,19 +65,13 @@ public class CryoLiquidBoost
     public boolean usingCryofluid(
         Building build
     ) {
-
         return selected(build)
             == Liquids.cryofluid;
     }
 
-    /**
-     * Water     = 1x consumption.
-     * Cryofluid = 2x consumption.
-     */
     public float consumptionMultiplier(
         Liquid liquid
     ) {
-
         return liquid == Liquids.cryofluid
             ? CRYO_CONSUMPTION
             : 1f;
@@ -168,54 +135,111 @@ public class CryoLiquidBoost
     @Override
     public void display(Stats stats) {
 
-        /*
-         * WATER
-         *
-         * Показуємо реальну ванільну
-         * витрату води для конкретного бура.
-         */
-        stats.add(
-            Stat.booster,
-            Liquids.water,
-            amount * 60f,
-            true
-        );
+        final float waterPerSecond =
+            amount * 60f;
 
-        /*
-         * CRYOFLUID
-         *
-         * Реальна витрата:
-         * 2x від Water.
-         */
-        stats.add(
-            Stat.booster,
-            Liquids.cryofluid,
+        final float cryoPerSecond =
             amount
-                * CRYO_CONSUMPTION
-                * 60f,
-            true
-        );
+            * CRYO_CONSUMPTION
+            * 60f;
 
-        /*
-         * Додатково показуємо різницю
-         * між двома режимами охолодження.
-         *
-         * Water:
-         * стандартний liquid boost.
-         *
-         * Cryofluid:
-         * 200% швидкості Water.
-         */
         stats.add(
             Stat.booster,
-            Core.bundle.get(
-                "liquid.water"
+            (StatValue)table -> {
+
+                /*
+                 * WATER
+                 */
+                addLiquidInfo(
+                    table,
+                    Liquids.water,
+                    waterPerSecond,
+                    "1x speed"
+                );
+
+                table.row();
+
+                /*
+                 * CRYOFLUID
+                 */
+                addLiquidInfo(
+                    table,
+                    Liquids.cryofluid,
+                    cryoPerSecond,
+                    "2x water speed"
+                );
+            }
+        );
+    }
+
+    private static void addLiquidInfo(
+        Table table,
+        Liquid liquid,
+        float perSecond,
+        String description
+    ) {
+
+        /*
+         * Іконка рідини.
+         */
+        table.image(liquid.uiIcon)
+            .size(32f)
+            .padRight(8f);
+
+        /*
+         * Назва рідини.
+         */
+        table.table(info -> {
+
+            info.left();
+
+            info.add(
+                liquid.localizedName
+            ).left();
+
+            info.row();
+
+            /*
+             * Витрата + опис режиму.
+             */
+            info.add(
+                formatAmount(perSecond)
+                    + "/sec"
+                    + " | "
+                    + description
             )
-                + ": 100% | "
-                + Core.bundle.get(
-                    "liquid.cryofluid"
-                )
-                + ": 200%"
+            .left()
+            .color(
+                arc.graphics.Color.lightGray
+            );
+        })
+        .left()
+        .padBottom(4f);
+    }
+
+    private static String formatAmount(
+        float value
+    ) {
+
+        /*
+         * 7.0 -> "7"
+         * 3.5 -> "3.5"
+         * 4.8 -> "4.8"
+         */
+        if (
+            Math.abs(
+                value - Math.round(value)
+            ) < 0.001f
+        ) {
+            return Integer.toString(
+                Math.round(value)
+            );
+        }
+
+        return String.format(
+            java.util.Locale.ROOT,
+            "%.1f",
+            value
         );
     }
 }
