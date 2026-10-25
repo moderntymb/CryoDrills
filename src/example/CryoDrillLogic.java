@@ -65,7 +65,10 @@ public class CryoDrillLogic {
         float waterAmount = oldWaterBooster.amount;
 
         CryoLiquidBoost replacement =
-            new CryoLiquidBoost(waterAmount);
+    new CryoLiquidBoost(
+        drill,
+        waterAmount
+    );
 
         replacement.update = true;
         replacement.apply(drill);
