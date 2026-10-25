@@ -1,13 +1,23 @@
 displayName: "CryoDrills"
-name: "CryoDrills"
+name: "cryo-drills"
 
-author: "moderntymb"
+author: "Danv"
 
 main: "example.ExampleJavaMod"
 
-description: "Adds cryofluid cooling support to vanilla drills. Cryofluid is consumed faster than water but provides a stronger drilling boost. Water and cryofluid cannot be mixed."
+description: """
+[accent]English[]
+Adds cryofluid support to vanilla drills.
+Cryofluid is consumed twice as fast as water, but provides twice the final drilling boost.
+Water and cryofluid cannot be mixed.
 
-version: "0.5.0"
+[accent]Українська[]
+Додає підтримку кріогенної рідини для стандартних бурів.
+Кріогенна рідина витрачається вдвічі швидше за воду, але забезпечує вдвічі сильніше кінцеве прискорення буріння.
+Воду та кріогенну рідину не можна змішувати.
+"""
+
+version: "1.0.0"
 
 minGameVersion: "160"
 
