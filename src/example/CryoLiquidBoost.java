@@ -1,27 +1,33 @@
 package example;
 
+import arc.Core;
+
 import mindustry.content.Liquids;
 import mindustry.gen.Building;
 import mindustry.type.Liquid;
 import mindustry.world.Block;
 import mindustry.world.consumers.ConsumeLiquidBase;
 import mindustry.world.meta.Stat;
+import mindustry.world.meta.StatUnit;
 import mindustry.world.meta.Stats;
 
 /**
- * Один liquid booster, який підтримує воду та кріоген.
+ * Liquid booster для CryoDrills.
  *
  * Water:
- * - ванільна витрата;
- * - ванільний boost.
+ * - стандартна витрата;
+ * - стандартне прискорення бура.
  *
  * Cryofluid:
- * - 2x витрата;
- * - фактичний speed boost визначається CryoDrillLogic.
+ * - 2x витрата відносно води;
+ * - 2x кінцева швидкість буріння
+ *   відносно водяного прискорення.
  */
-public class CryoLiquidBoost extends ConsumeLiquidBase {
+public class CryoLiquidBoost
+    extends ConsumeLiquidBase {
 
     public static final float CRYO_CONSUMPTION = 2f;
+
     public static final float EPSILON = 0.001f;
 
     public CryoLiquidBoost(float waterAmount) {
@@ -33,41 +39,72 @@ public class CryoLiquidBoost extends ConsumeLiquidBase {
     public void apply(Block block) {
         super.apply(block);
 
-        // Дозволяємо обидві рідини.
+        /*
+         * Дозволяємо буру приймати
+         * Water та Cryofluid.
+         */
         block.liquidFilter[Liquids.water.id] = true;
-        block.liquidFilter[Liquids.cryofluid.id] = true;
+
+        block.liquidFilter[
+            Liquids.cryofluid.id
+        ] = true;
     }
 
     @Override
     public boolean consumes(Liquid liquid) {
+
         return liquid == Liquids.water
             || liquid == Liquids.cryofluid;
     }
 
     /**
-     * Визначає активну охолоджувальну рідину.
+     * Визначає активну рідину.
      *
-     * Змішування поки не є механікою першої версії.
-     * Якщо якимось способом обидві рідини вже опинились
-     * усередині, кріоген має пріоритет.
+     * Cryofluid має пріоритет лише як
+     * страховка на випадок, якщо обидві
+     * рідини якимось способом опиняться
+     * всередині одночасно.
+     *
+     * Нормальна логіка CryoDrillLogic
+     * змішування не дозволяє.
      */
     public Liquid selected(Building build) {
-        if (build.liquids.get(Liquids.cryofluid) > EPSILON) {
+
+        if (
+            build.liquids.get(
+                Liquids.cryofluid
+            ) > EPSILON
+        ) {
             return Liquids.cryofluid;
         }
 
-        if (build.liquids.get(Liquids.water) > EPSILON) {
+        if (
+            build.liquids.get(
+                Liquids.water
+            ) > EPSILON
+        ) {
             return Liquids.water;
         }
 
         return null;
     }
 
-    public boolean usingCryofluid(Building build) {
-        return selected(build) == Liquids.cryofluid;
+    public boolean usingCryofluid(
+        Building build
+    ) {
+
+        return selected(build)
+            == Liquids.cryofluid;
     }
 
-    public float consumptionMultiplier(Liquid liquid) {
+    /**
+     * Water     = 1x consumption.
+     * Cryofluid = 2x consumption.
+     */
+    public float consumptionMultiplier(
+        Liquid liquid
+    ) {
+
         return liquid == Liquids.cryofluid
             ? CRYO_CONSUMPTION
             : 1f;
@@ -75,6 +112,7 @@ public class CryoLiquidBoost extends ConsumeLiquidBase {
 
     @Override
     public float efficiency(Building build) {
+
         Liquid liquid = selected(build);
 
         if (liquid == null) {
@@ -82,7 +120,8 @@ public class CryoLiquidBoost extends ConsumeLiquidBase {
         }
 
         float edelta =
-            build.edelta() * build.efficiencyScale();
+            build.edelta()
+            * build.efficiencyScale();
 
         if (edelta <= 0.00000001f) {
             return 0f;
@@ -99,13 +138,15 @@ public class CryoLiquidBoost extends ConsumeLiquidBase {
         }
 
         return Math.min(
-            build.liquids.get(liquid) / required,
+            build.liquids.get(liquid)
+                / required,
             1f
         );
     }
 
     @Override
     public void update(Building build) {
+
         Liquid liquid = selected(build);
 
         if (liquid == null) {
@@ -118,12 +159,21 @@ public class CryoLiquidBoost extends ConsumeLiquidBase {
             * build.edelta()
             * multiplier.get(build);
 
-        build.liquids.remove(liquid, required);
+        build.liquids.remove(
+            liquid,
+            required
+        );
     }
 
     @Override
     public void display(Stats stats) {
-        // Water = vanilla consumption.
+
+        /*
+         * WATER
+         *
+         * Показуємо реальну ванільну
+         * витрату води для конкретного бура.
+         */
         stats.add(
             Stat.booster,
             Liquids.water,
@@ -131,12 +181,41 @@ public class CryoLiquidBoost extends ConsumeLiquidBase {
             true
         );
 
-        // Cryofluid = 2x water consumption.
+        /*
+         * CRYOFLUID
+         *
+         * Реальна витрата:
+         * 2x від Water.
+         */
         stats.add(
             Stat.booster,
             Liquids.cryofluid,
-            amount * CRYO_CONSUMPTION * 60f,
+            amount
+                * CRYO_CONSUMPTION
+                * 60f,
             true
         );
+
+        /*
+         * Додатково показуємо різницю
+         * між двома режимами охолодження.
+         *
+         * Water:
+         * стандартний liquid boost.
+         *
+         * Cryofluid:
+         * 200% швидкості Water.
+         */
+        stats.add(
+            Stat.booster,
+            Core.bundle.get(
+                "liquid.water"
+            )
+                + ": 100% | "
+                + Core.bundle.get(
+                    "liquid.cryofluid"
+                )
+                + ": 200%"
+        );
     }
-            }
+}
