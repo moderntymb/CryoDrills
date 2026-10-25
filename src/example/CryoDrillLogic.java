@@ -128,8 +128,8 @@ public class CryoDrillLogic {
          * Після цього має викликатися display()
          * нашого CryoLiquidBoost.
          */
-        drill.stats.clear();
-        drill.setStats();
+        drill.stats = new mindustry.world.meta.Stats();
+drill.setStats();
 
         Log.info(
             "CryoDrills: configured @ | water=@/s | cryofluid=@/s",
