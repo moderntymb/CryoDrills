@@ -7,7 +7,7 @@ main: "example.ExampleJavaMod"
 
 description: "Adds cryofluid cooling support to vanilla drills. Cryofluid is consumed faster than water but provides a stronger drilling boost. Water and cryofluid cannot be mixed."
 
-version: "1.0.0"
+version: "0.5.0"
 
 minGameVersion: "160"
 
