@@ -5,17 +5,7 @@ author: "Danv"
 
 main: "example.ExampleJavaMod"
 
-description: """
-[accent]English[]
-Adds cryofluid support to vanilla drills.
-Cryofluid is consumed twice as fast as water, but provides twice the final drilling boost.
-Water and cryofluid cannot be mixed.
-
-[accent]Українська[]
-Додає підтримку кріогенної рідини для стандартних бурів.
-Кріогенна рідина витрачається вдвічі швидше за воду, але забезпечує вдвічі сильніше кінцеве прискорення буріння.
-Воду та кріогенну рідину не можна змішувати.
-"""
+description: "[accent]English[]\nAdds cryofluid support to vanilla drills. Cryofluid is consumed twice as fast as water, but provides twice the final drilling boost. Water and cryofluid cannot be mixed.\n\n[accent]Українська[]\nДодає підтримку кріогенної рідини для стандартних бурів. Кріогенна рідина витрачається вдвічі швидше за воду, але забезпечує вдвічі сильніше кінцеве прискорення буріння. Воду та кріогенну рідину не можна змішувати."
 
 version: "1.0.0"
 
