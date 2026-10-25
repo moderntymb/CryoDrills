@@ -70,6 +70,11 @@ public class CryoDrillLogic {
         replacement.update = true;
         replacement.apply(drill);
 
+        /*
+         * Замінюємо vanilla water booster
+         * нашим CryoLiquidBoost у всіх масивах
+         * consumers блока.
+         */
         drill.consumers = replace(
             drill.consumers,
             oldWaterBooster,
@@ -107,12 +112,24 @@ public class CryoDrillLogic {
         installBuildType(drill);
 
         /*
-         * Встановлюємо окремий UI.
-         *
-         * CryoDrillUI відповідає за bars та інші
-         * майбутні елементи інтерфейсу.
+         * Встановлюємо наш UI рідини.
          */
         CryoDrillUI.install(drill);
+
+        /*
+         * ВАЖЛИВО:
+         *
+         * Vanilla stats були створені ще до того,
+         * як ми замінили water booster.
+         *
+         * Тому очищаємо старі характеристики
+         * і змушуємо Mindustry побудувати їх заново.
+         *
+         * Після цього має викликатися display()
+         * нашого CryoLiquidBoost.
+         */
+        drill.stats.clear();
+        drill.setStats();
 
         Log.info(
             "CryoDrills: configured @ | water=@/s | cryofluid=@/s",
@@ -139,9 +156,6 @@ public class CryoDrillLogic {
 
             /*
              * Шукаємо саме WATER BOOSTER.
-             *
-             * Це важливо, бо вода може бути
-             * звичайним споживанням, а не booster.
              */
             if (
                 consumer.booster
@@ -206,12 +220,10 @@ public class CryoDrillLogic {
                 public void updateTile() {
 
                     /*
-                     * ПОКИ ЗАЛИШАЄМО timer(0),
-                     * оскільки ця версія механіки
-                     * вже перевірена в грі.
+                     * timer(0) поки залишаємо.
                      *
-                     * Винесемо timer cleanup
-                     * в окрему зміну.
+                     * Ця механіка вже перевірена
+                     * в грі, тому зараз її не чіпаємо.
                      */
                     if (
                         timer(
@@ -367,7 +379,7 @@ public class CryoDrillLogic {
     }
 
     /*
-     * Замінює старий vanilla water consumer
+     * Замінює старий vanilla consumer
      * на наш CryoLiquidBoost.
      */
     private static Consume[] replace(
