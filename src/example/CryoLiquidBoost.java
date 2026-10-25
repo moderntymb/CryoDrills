@@ -1,36 +1,47 @@
 package example;
 
+import arc.graphics.Color;
 import arc.scene.ui.layout.Table;
+import arc.util.Strings;
 
 import mindustry.content.Liquids;
 import mindustry.gen.Building;
 import mindustry.type.Liquid;
+import mindustry.ui.Styles;
 import mindustry.world.Block;
+import mindustry.world.blocks.production.Drill;
 import mindustry.world.consumers.ConsumeLiquidBase;
 import mindustry.world.meta.Stat;
 import mindustry.world.meta.Stats;
+import mindustry.world.meta.StatUnit;
 import mindustry.world.meta.StatValue;
 
 public class CryoLiquidBoost
     extends ConsumeLiquidBase {
 
     public static final float CRYO_CONSUMPTION = 2f;
+    public static final float CRYO_SPEED_MULTIPLIER = 2f;
     public static final float EPSILON = 0.001f;
 
-   public CryoLiquidBoost(float waterAmount) {
-    super(waterAmount);
+    private final Drill drill;
 
-    /*
-     * optional = true:
-     * рідина залишається необов'язковим прискорювачем
-     * і продовжує впливати через optionalEfficiency.
-     *
-     * booster = false:
-     * Drill.setStats() більше не перехоплює
-     * Stat.booster і не замінює наш опис vanilla-описом.
-     */
-    optional(true, false);
-}
+    public CryoLiquidBoost(
+        Drill drill,
+        float waterAmount
+    ) {
+        super(waterAmount);
+
+        this.drill = drill;
+
+        /*
+         * Має залишатися optional consumer,
+         * але НЕ vanilla booster.
+         *
+         * Інакше Drill.setStats() замінить
+         * нашу власну статистику.
+         */
+        optional(true, false);
+    }
 
     @Override
     public void apply(Block block) {
@@ -145,111 +156,126 @@ public class CryoLiquidBoost
     @Override
     public void display(Stats stats) {
 
-        final float waterPerSecond =
+        float waterPerSecond =
             amount * 60f;
 
-        final float cryoPerSecond =
-            amount
-            * CRYO_CONSUMPTION
-            * 60f;
+        float cryoPerSecond =
+            waterPerSecond
+            * CRYO_CONSUMPTION;
+
+        /*
+         * Vanilla Drill показує фінальний бонус
+         * як liquidBoostIntensity².
+         *
+         * Тому він автоматично відрізняється
+         * для різних бурів.
+         */
+        float waterSpeed =
+            drill.liquidBoostIntensity
+            * drill.liquidBoostIntensity;
+
+        /*
+         * Наш Cryofluid дає рівно 2x
+         * фінальної швидкості Water.
+         */
+        float cryoSpeed =
+            waterSpeed
+            * CRYO_SPEED_MULTIPLIER;
 
         stats.add(
             Stat.booster,
             (StatValue)table -> {
 
-                /*
-                 * WATER
-                 */
-                addLiquidInfo(
+                table.row();
+
+                addBooster(
                     table,
                     Liquids.water,
                     waterPerSecond,
-                    "1x speed"
+                    waterSpeed
                 );
 
-                table.row();
-
-                /*
-                 * CRYOFLUID
-                 */
-                addLiquidInfo(
+                addBooster(
                     table,
                     Liquids.cryofluid,
                     cryoPerSecond,
-                    "2x water speed"
+                    cryoSpeed
                 );
             }
         );
     }
 
-    private static void addLiquidInfo(
+    private static void addBooster(
         Table table,
         Liquid liquid,
         float perSecond,
-        String description
+        float speed
     ) {
 
-        /*
-         * Іконка рідини.
-         */
-        table.image(liquid.uiIcon)
-            .size(32f)
-            .padRight(8f);
+        table.table(
+            Styles.grayPanel,
+            panel -> {
 
-        /*
-         * Назва рідини.
-         */
-        table.table(info -> {
+                /*
+                 * ICON
+                 */
+                panel.image(liquid.uiIcon)
+                    .size(40f)
+                    .pad(10f);
 
-            info.left();
+                /*
+                 * NAME + CONSUMPTION
+                 */
+                panel.table(info -> {
 
-            info.add(
-                liquid.localizedName
-            ).left();
+                    info.add(
+                        liquid.localizedName
+                    )
+                    .left();
 
-            info.row();
+                    info.row();
 
-            /*
-             * Витрата + опис режиму.
-             */
-            info.add(
-                formatAmount(perSecond)
-                    + "/sec"
-                    + " | "
-                    + description
-            )
-            .left()
-            .color(
-                arc.graphics.Color.lightGray
-            );
-        })
-        .left()
-        .padBottom(4f);
-    }
+                    info.add(
+                        Strings.autoFixed(
+                            perSecond,
+                            2
+                        )
+                        + StatUnit
+                            .perSecond
+                            .localized()
+                    )
+                    .left()
+                    .color(Color.lightGray);
+                });
 
-    private static String formatAmount(
-        float value
-    ) {
+                /*
+                 * SPEED
+                 */
+                panel.table(speedTable -> {
 
-        /*
-         * 7.0 -> "7"
-         * 3.5 -> "3.5"
-         * 4.8 -> "4.8"
-         */
-        if (
-            Math.abs(
-                value - Math.round(value)
-            ) < 0.001f
-        ) {
-            return Integer.toString(
-                Math.round(value)
-            );
-        }
+                    speedTable.right();
 
-        return String.format(
-            java.util.Locale.ROOT,
-            "%.1f",
-            value
-        );
+                    speedTable.add(
+                        "[stat]"
+                        + Strings.autoFixed(
+                            speed,
+                            2
+                        )
+                        + "[lightgray]"
+                        + StatUnit
+                            .timesSpeed
+                            .localized()
+                    );
+
+                })
+                .right()
+                .grow()
+                .pad(10f)
+                .padRight(15f);
+            }
+        )
+        .growX()
+        .pad(5f)
+        .row();
     }
 }
