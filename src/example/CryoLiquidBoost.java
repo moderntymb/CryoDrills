@@ -17,10 +17,20 @@ public class CryoLiquidBoost
     public static final float CRYO_CONSUMPTION = 2f;
     public static final float EPSILON = 0.001f;
 
-    public CryoLiquidBoost(float waterAmount) {
-        super(waterAmount);
-        boost();
-    }
+   public CryoLiquidBoost(float waterAmount) {
+    super(waterAmount);
+
+    /*
+     * optional = true:
+     * рідина залишається необов'язковим прискорювачем
+     * і продовжує впливати через optionalEfficiency.
+     *
+     * booster = false:
+     * Drill.setStats() більше не перехоплює
+     * Stat.booster і не замінює наш опис vanilla-описом.
+     */
+    optional(true, false);
+}
 
     @Override
     public void apply(Block block) {
