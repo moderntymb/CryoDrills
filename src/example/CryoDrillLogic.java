@@ -116,20 +116,23 @@ public class CryoDrillLogic {
          */
         CryoDrillUI.install(drill);
 
-        /*
-         * ВАЖЛИВО:
-         *
-         * Vanilla stats були створені ще до того,
-         * як ми замінили water booster.
-         *
-         * Тому очищаємо старі характеристики
-         * і змушуємо Mindustry побудувати їх заново.
-         *
-         * Після цього має викликатися display()
-         * нашого CryoLiquidBoost.
-         */
-        drill.stats = new mindustry.world.meta.Stats();
+/*
+ * Повністю перебудовуємо vanilla stats.
+ */
+drill.stats =
+    new mindustry.world.meta.Stats();
+
 drill.setStats();
+
+/*
+ * Drill.setStats() уже закінчив свою роботу.
+ * Тепер замінюємо його vanilla booster
+ * нашим Water + Cryofluid описом.
+ */
+CryoDrillStats.install(
+    drill,
+    waterAmount
+);
 
         Log.info(
             "CryoDrills: configured @ | water=@/s | cryofluid=@/s",
